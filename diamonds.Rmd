@@ -30,3 +30,22 @@ ggplot(data = diamonds, aes(x = table, y = price)) +
    coord_cartesian(xlim = c(50, 70))
 ```
 
+### Price vs. Volume and Diamond Clarity
+Create a scatterplot of diamond price vs. volume (x * y * z) and color the points by the clarity of diamonds. Use scale on the y-axis to take the log10 of price. You should also omit the top 1% of diamond volumes from the plot.
+```{r}
+diamonds$volume <- with(diamonds, x * y * z)
+vol99q <- with(diamonds, quantile(volume, probs = c(.99)))
+ggplot(data = subset(diamonds, volume <= vol99q),
+   aes(x = volume, y = price)) +
+   geom_point(alpha = 1/5, aes(color=clarity)) +
+   scale_y_log10()
+```
+
+### Proportion of Friendships Initiated
+Your task is to create a new variable called 'prop_initiated' in the Pseudo-Facebook data set. The variable should contain the proportion of friendships that the user initiated.
+```{r}
+pf <- read.csv("pseudo_facebook.tsv", sep = '\t')
+
+pf$prop_initiated <- with(pf, ifelse(friend_count > 0, friendships_initiated / friend_count, 0))
+```
+
