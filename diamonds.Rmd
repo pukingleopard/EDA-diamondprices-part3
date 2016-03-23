@@ -78,6 +78,52 @@ ggplot(data = subset(diamonds, carat > 0),
    aes(x = cut, y = price / carat)) +
    geom_jitter(aes(color = color)) + 
    facet_wrap(~ clarity) +
-   scale_color_brewer(type = "div") +
+   scale_color_brewer(type = "div")
 ```
 
+### Gapminder Multivariate Analysis
+####Load and tidy the data
+```{r load gapminder}
+library(tidyr)
+res.e.usage.pp <- read.csv("Indicator_Residential electricity consumption per person.csv",
+   row.names = NULL, stringsAsFactors = FALSE)
+
+e.gen.pp <- read.csv("Electricity Generation per capita.csv",
+   row.names = NULL, stringsAsFactors = FALSE)
+
+e.nuclear.pp <- read.csv("Indicator_Nuclear production per capita.csv",
+   row.names = NULL, stringsAsFactors = FALSE)
+
+countryList <- intersect(res.e.usage.pp$Country, e.gen.pp$Country)
+countryList <- intersect(countryList, e.nuclear.pp$Country)
+
+res.e.usage.pp.tidy <- res.e.usage.pp %>% 
+   filter(Country %in% countryList) %>%
+   gather("Year", "kwH.residential", 2:50)
+res.e.usage.pp.tidy$Year <- substr(res.e.usage.pp.tidy$Year, 2, 5)
+
+e.gen.pp.tidy <- e.gen.pp %>%
+   filter(Country %in% countryList) %>%
+   gather("Year", "kwH.generated", 2:20)
+e.gen.pp.tidy$Year <- substr(e.gen.pp.tidy$Year, 2, 5)
+
+e.nuclear.pp.tidy <- e.nuclear.pp %>%
+   filter(Country %in% countryList) %>%
+   gather("Year", "kwH.nuclear", 2:53)
+e.nuclear.pp.tidy$Year <- substr(e.nuclear.pp.tidy$Year, 2, 5)
+
+e.all.tidy <- left_join(res.e.usage.pp.tidy, e.gen.pp.tidy) %>%
+   left_join(., e.nuclear.pp.tidy) %>%
+   filter(!(is.na(kwH.residential) | is.na(kwH.generated) | is.na(kwH.nuclear)))
+```
+
+#### Make Plots
+```{r}
+ggplot(data = e.all.tidy, aes(x = Year, y = kwH.residential)) +
+   geom_point(aes(color = kwH.generated)) +
+   facet_wrap(~ Country)
+
+ggplot(data = e.all.tidy, aes(x = Year, y = kwH.residential)) +
+   geom_point(aes(color = kwH.nuclear)) +
+   facet_wrap(~ Country)
+```
